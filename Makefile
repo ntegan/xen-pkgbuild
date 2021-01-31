@@ -1,4 +1,11 @@
 
+
+SOURCE_FILES := \
+	xen-*.tar.gz \
+	xen-*.tar.gz.zig \
+	xen-*.pkg.tar.zst \
+	zstd-dom0.patch
+
 all: 
 	bash 02_containerized_build.sh enter_container
 
@@ -9,4 +16,4 @@ clean:
 	$(RM) -r pkg src
 
 cleaner: clean
-	$(RM) xen-*.pkg.tar.zst xen-*.tar.gz xen-*.tar.gz.zig
+	$(RM) $(SOURCE_FILES)
