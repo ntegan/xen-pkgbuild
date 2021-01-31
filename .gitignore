@@ -3,3 +3,4 @@ xen-*.tar.gz
 xen-*.tar.gz.sig
 pkg
 src
+*.patch

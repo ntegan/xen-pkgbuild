@@ -12,6 +12,7 @@ depends=()
     # python-dev (python2)
     # uuid-dev, 
 makedepends=(
+    perl
     git
     python2
     python3
@@ -42,20 +43,34 @@ provides=()
 conflicts=()
 replaces=()
 backup=()
-#options=()
+
+# This prevents passing flags to `ld` that it doesn't understand
 options=(!buildflags)
 install=
 changelog=
+# Jan Beulich
+# [PATCH 0/3] x86/Dom0: support zstd compressed kernels
+patches_zstd_dom0=(
+)
+patch_sha256sums_zstd_dom0=(
+)
+patches=()
+patches+=(${patches_zstd_dom0[@]})
+patch_sha256sums=()
+patch_sha256sums+=(${patch_sha256sums_zstd_dom0[@]})
 source=(
 	"https://downloads.xenproject.org/release/xen/$pkgver/$pkgname-$pkgver.tar.gz"{,.sig}
+    "https://src.fedoraproject.org/rpms/xen/raw/7794fedff39012c39ab4ba2c191f3e186fefc4eb/f/zstd-dom0.patch"
+
 )
-#source=("$pkgname-$pkgver.tar.gz"
-#        "$pkgname-$pkgver.patch")
+source+=(${patches[@]})
 noextract=()
 sha256sums=(
     "cf0d7316ad674491f49b7ef0518cb1d906a2e3bfad639deef0ef2343b119ac0c"
     "8936f8da3c4981e4deadface3c4178e292d337b77073002826a008a64d5fe450"
+    e40aa4f0527679e91ce27fdc361cb744221cb8ebcfdc41eb7662572fe667612e
 )
+sha256sums+=(${patch_sha256sums[@]})
 # Xen.org Xen tree code signing <pgp@xen.org>
 #(signatures on the xen hypervisor and tools) 
 validpgpkeys=(
@@ -81,6 +96,10 @@ prepare() {
 	sed 's,/var/run,/run,g' -i tools/xenmon/xenbaked.c
 	sed 's,/var/run,/run,g' -i tools/xenmon/xenmon.py
 	sed 's,/var/run,/run,g' -i tools/pygrub/src/pygrub
+    #perl -0777 -i.original -pe 's/^.*<!--X-Body-of-Message-->\n<pre>//igs' $file
+
+    # Zstd compressed dom0 kernel patches
+    patch -p1 -i ../zstd-dom0.patch
 }
 
 #pkgver() {
