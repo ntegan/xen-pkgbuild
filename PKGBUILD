@@ -9,7 +9,29 @@ url="xenproject.org"
 license=('GPL2')
 #groups=()
 depends=()
-makedepends=()
+    # python-dev (python2)
+    # uuid-dev, 
+makedepends=(
+    zlib,
+    ncurses,
+    openssl,
+    xorg-server-devel,
+    util-linux-libs,
+    yajl,
+    libaio,
+    glib2,
+    pixman,
+    pkgconf,
+    bridge-utils,
+    iproute2,
+    bison,
+    flex,
+    gettext,
+    acpica,
+    glibc,
+    lib32-glibc,
+    figlet
+)
 checkdepends=()
 optdepends=()
 provides=()
@@ -59,8 +81,18 @@ prepare() {
 
 build() {
 	cd "$pkgname-$pkgver"
-	./configure --prefix=/usr
-	make
+		#--with-system-ovmf=/usr/share/ovmf/x64/OVMF.fd \
+		#--with-system-seabios=/usr/share/qemu/bios-256k.bin \
+		#--with-sysconfig-leaf-dir=conf.d \
+	./configure \
+        --prefix=/usr \
+		--sbindir=/usr/bin \
+		--libdir=/usr/lib \
+		--with-rundir=/run \
+        --disable-stubdom \
+		--disable-qemu-traditional \
+        --enable-systemd
+	make -j$(nproc) XEN_VENDORVERSION=arch
 }
 
 check() {
