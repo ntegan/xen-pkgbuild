@@ -12,25 +12,28 @@ depends=()
     # python-dev (python2)
     # uuid-dev, 
 makedepends=(
-    zlib,
-    ncurses,
-    openssl,
-    xorg-server-devel,
-    util-linux-libs,
-    yajl,
-    libaio,
-    glib2,
-    pixman,
-    pkgconf,
-    bridge-utils,
-    iproute2,
-    bison,
-    flex,
-    gettext,
-    acpica,
-    glibc,
-    lib32-glibc,
+    git
+    python2
+    zlib
+    ncurses
+    openssl
+    xorg-server-devel
+    util-linux-libs
+    yajl
+    libaio
+    glib2
+    pixman
+    pkgconf
+    bridge-utils
+    iproute2
+    bison
+    flex
+    gettext
+    acpica
+    glibc
+    lib32-glibc
     figlet
+    
 )
 checkdepends=()
 optdepends=()
