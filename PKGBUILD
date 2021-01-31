@@ -3,12 +3,25 @@ pkgname=xen
 pkgver=4.14.1
 pkgrel=1
 #epoch=
-pkgdesc="Xen hypervisor"
+pkgdesc="Type-1 hypervisor"
 arch=('x86_64')
 url="xenproject.org"
 license=('GPL2')
 #groups=()
-depends=()
+depends=(
+    python
+    python3
+    libaio
+    glib2
+    pixman
+    curl
+    libxml2
+    yajl
+    gnutls
+    libnl
+    libseccomp
+    systemd-libs
+)
     # python-dev (python2)
     # uuid-dev, 
 makedepends=(
@@ -35,7 +48,6 @@ makedepends=(
     glibc
     lib32-glibc
     figlet
-    
 )
 checkdepends=()
 optdepends=()
@@ -46,21 +58,12 @@ backup=()
 
 # This prevents passing flags to `ld` that it doesn't understand
 options=(!buildflags)
-install=
 install="xen.install"
 changelog=
-# Jan Beulich
-# [PATCH 0/3] x86/Dom0: support zstd compressed kernels
-patches_zstd_dom0=(
-)
-patch_sha256sums_zstd_dom0=(
-)
 patches=()
-patches+=(${patches_zstd_dom0[@]})
 patch_sha256sums=()
-patch_sha256sums+=(${patch_sha256sums_zstd_dom0[@]})
 source=(
-	"https://downloads.xenproject.org/release/xen/$pkgver/$pkgname-$pkgver.tar.gz"{,.sig}
+    "https://downloads.xenproject.org/release/xen/$pkgver/$pkgname-$pkgver.tar.gz"{,.sig}
     "https://src.fedoraproject.org/rpms/xen/raw/7794fedff39012c39ab4ba2c191f3e186fefc4eb/f/zstd-dom0.patch"
     tmpfiles.conf
     xen.conf
@@ -95,13 +98,13 @@ prepare() {
     # runs after package extraction
     # before pkgver() and build function
     # if extract skipped, this not run
-	cd "$pkgname-$pkgver"
-	#patch -p1 -i "$srcdir/$pkgname-$pkgver.patch"
-	sed 's,/var/run,/run,g' -i tools/hotplug/Linux/locking.sh
-	sed 's,/var/run,/run,g' -i tools/misc/xenpvnetboot
-	sed 's,/var/run,/run,g' -i tools/xenmon/xenbaked.c
-	sed 's,/var/run,/run,g' -i tools/xenmon/xenmon.py
-	sed 's,/var/run,/run,g' -i tools/pygrub/src/pygrub
+    cd "$pkgname-$pkgver"
+    #patch -p1 -i "$srcdir/$pkgname-$pkgver.patch"
+    sed 's,/var/run,/run,g' -i tools/hotplug/Linux/locking.sh
+    sed 's,/var/run,/run,g' -i tools/misc/xenpvnetboot
+    sed 's,/var/run,/run,g' -i tools/xenmon/xenbaked.c
+    sed 's,/var/run,/run,g' -i tools/xenmon/xenmon.py
+    sed 's,/var/run,/run,g' -i tools/pygrub/src/pygrub
     #perl -0777 -i.original -pe 's/^.*<!--X-Body-of-Message-->\n<pre>//igs' $file
 
     # Zstd compressed dom0 kernel patches
@@ -115,22 +118,21 @@ prepare() {
 #}
 
 build() {
-	cd "$pkgname-$pkgver"
-		#--with-sysconfig-leaf-dir=conf.d \
+    cd "$pkgname-$pkgver"
+    #--with-sysconfig-leaf-dir=conf.d \
     make distclean
     make clean
-	./configure \
+    ./configure \
         --prefix=/usr \
-		--sbindir=/usr/bin \
-		--libdir=/usr/lib \
-		--with-rundir=/run \
-		--with-system-seabios=/usr/share/qemu/bios-256k.bin \
-		--with-system-ovmf=/usr/share/ovmf/x64/OVMF.fd \
+        --sbindir=/usr/bin \
+        --libdir=/usr/lib \
+        --with-rundir=/run \
+        --with-system-seabios=/usr/share/qemu/bios-256k.bin \
+        --with-system-ovmf=/usr/share/ovmf/x64/OVMF.fd \
         --disable-stubdom \
-		--disable-qemu-traditional \
+        --disable-qemu-traditional \
         --enable-systemd
-	#make -j$(nproc) DESTDIR="$pkgdir/" XEN_VENDORVERSION=arch
-	make -j$(nproc) XEN_VENDORVERSION=arch
+    make -j$(nproc) XEN_VENDORVERSION=arch
 }
 
 check() {
@@ -140,33 +142,32 @@ check() {
 }
 
 package() {
-	cd "$pkgname-$pkgver"
-	#make DESTDIR="$pkgdir/" XEN_VENDORVERSION=arch install
-	make DESTDIR="$pkgdir/" install
+    cd "$pkgname-$pkgver"
+    make DESTDIR="$pkgdir/" install
 
     # lib64->lib, rename to xen.efi, remove softlinks
-	mv "$pkgdir"/usr/lib64/efi "$pkgdir"/usr/lib/efi
-	rm -rf "$pkgdir"{/var/run,/usr/lib64}
-	find "${pkgdir}/usr/lib/efi" -type l -delete
-	mv "${pkgdir}/usr/lib/efi/xen-${pkgver}.efi" "${pkgdir}/usr/lib/efi/xen.efi"
+    mv "$pkgdir"/usr/lib64/efi "$pkgdir"/usr/lib/efi
+    rm -rf "$pkgdir"{/var/run,/usr/lib64}
+    find "${pkgdir}/usr/lib/efi" -type l -delete
+    mv "${pkgdir}/usr/lib/efi/xen-${pkgver}.efi" "${pkgdir}/usr/lib/efi/xen.efi"
 
-	mkdir -p "${pkgdir}/var/log/xen/console"
+    mkdir -p "${pkgdir}/var/log/xen/console"
 
     # rename to xen.gz
-	find "${pkgdir}/boot" -type l -delete
-	mv "${pkgdir}/boot/xen-${pkgver}.gz" "${pkgdir}/boot/xen.gz"
+    find "${pkgdir}/boot" -type l -delete
+    mv "${pkgdir}/boot/xen-${pkgver}.gz" "${pkgdir}/boot/xen.gz"
 
     # Remove debug symbols
-	rm -r "${pkgdir}/usr/lib/debug"
+    rm -r "${pkgdir}/usr/lib/debug"
 
     # SysVinit
-	rm -r "${pkgdir}/etc/init.d"
+    rm -r "${pkgdir}/etc/init.d"
 
     # xen.conf (mdoules load) TODO do i need this or nah
-	install -D -m 0644 "${srcdir}/xen.conf" "${pkgdir}/usr/lib/modules-load.d/xen.conf"
-    # efi-xen.cfg TODO why here and not /boot?
+    install -D -m 0644 "${srcdir}/xen.conf" "${pkgdir}/usr/lib/modules-load.d/xen.conf"
+    # efi-xen.cfg
     # tmpfiles
-	install -D -m 0644 "${srcdir}/tmpfiles.conf" "${pkgdir}/usr/lib/tmpfiles.d/${pkgbase}.conf"
+    install -D -m 0644 "${srcdir}/tmpfiles.conf" "${pkgdir}/usr/lib/tmpfiles.d/${pkgbase}.conf"
     # microcode hooks
 }
 
