@@ -2,7 +2,7 @@
 
 SOURCE_FILES := \
 	xen-*.tar.gz \
-	xen-*.tar.gz.zig \
+	xen-*.tar.gz.sig \
 	xen-*.pkg.tar.zst \
 	zstd-dom0.patch
 
