@@ -14,6 +14,7 @@ depends=()
 makedepends=(
     git
     python2
+    python3
     zlib
     ncurses
     openssl
@@ -41,7 +42,8 @@ provides=()
 conflicts=()
 replaces=()
 backup=()
-options=()
+#options=()
+options=(!buildflags)
 install=
 changelog=
 source=(
@@ -74,6 +76,11 @@ prepare() {
     # if extract skipped, this not run
 	cd "$pkgname-$pkgver"
 	#patch -p1 -i "$srcdir/$pkgname-$pkgver.patch"
+	sed 's,/var/run,/run,g' -i tools/hotplug/Linux/locking.sh
+	sed 's,/var/run,/run,g' -i tools/misc/xenpvnetboot
+	sed 's,/var/run,/run,g' -i tools/xenmon/xenbaked.c
+	sed 's,/var/run,/run,g' -i tools/xenmon/xenmon.py
+	sed 's,/var/run,/run,g' -i tools/pygrub/src/pygrub
 }
 
 #pkgver() {
@@ -84,17 +91,20 @@ prepare() {
 
 build() {
 	cd "$pkgname-$pkgver"
-		#--with-system-ovmf=/usr/share/ovmf/x64/OVMF.fd \
-		#--with-system-seabios=/usr/share/qemu/bios-256k.bin \
 		#--with-sysconfig-leaf-dir=conf.d \
+    make distclean
+    make clean
 	./configure \
         --prefix=/usr \
 		--sbindir=/usr/bin \
 		--libdir=/usr/lib \
 		--with-rundir=/run \
+		--with-system-seabios=/usr/share/qemu/bios-256k.bin \
+		--with-system-ovmf=/usr/share/ovmf/x64/OVMF.fd \
         --disable-stubdom \
 		--disable-qemu-traditional \
         --enable-systemd
+	#make -j$(nproc) DESTDIR="$pkgdir/" XEN_VENDORVERSION=arch
 	make -j$(nproc) XEN_VENDORVERSION=arch
 }
 
@@ -106,5 +116,6 @@ check() {
 
 package() {
 	cd "$pkgname-$pkgver"
+	#make DESTDIR="$pkgdir/" XEN_VENDORVERSION=arch install
 	make DESTDIR="$pkgdir/" install
 }
