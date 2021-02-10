@@ -120,6 +120,7 @@ prepare() {
 build() {
     cd "$pkgname-$pkgver"
     #--with-sysconfig-leaf-dir=conf.d \
+        #--with-extra-qemuu-configure-args="--enable-spice " \
     make distclean
     make clean
     ./configure \

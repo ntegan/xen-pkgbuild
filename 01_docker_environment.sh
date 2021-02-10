@@ -5,7 +5,7 @@ my_dir="$(cd $(dirname $0) && pwd)"
 useradd -m ntegan
 yes password | passwd ntegan
 
-pacman -Sy
+pacman -Syu
 cat >> /etc/sudoers <<EOF 
 ntegan ALL=(ALL) NOPASSWD: ALL
 EOF
